@@ -3,5 +3,7 @@
 use App\Providers\AppServiceProvider;
 
 return [
-    AppServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    Illuminate\View\ViewServiceProvider::class,
+    Illuminate\Routing\RoutingServiceProvider::class,
 ];
