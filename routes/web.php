@@ -21,23 +21,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/saving', [DashboardController::class, 'storeSaving'])->name('saving.store');
     
+    // Route Penarikan Saldo
+    Route::post('/withdraw', [DashboardController::class, 'storeWithdrawal'])->name('withdraw.store');
+    
     // Route Ganti Nama
     Route::post('/update-pet-name', [DashboardController::class, 'updatePetName'])->name('pet.update-name');
     Route::post('/update-user-name', [DashboardController::class, 'updateUserName'])->name('user.update-name');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::post('/saving', [DashboardController::class, 'storeSaving'])->name('saving.store');
-    
-    // Route Penarikan Saldo
-    Route::post('/withdraw', [DashboardController::class, 'storeWithdrawal'])->name('withdraw.store');
-    
-    // Route Edit Nama
-    Route::post('/update-pet-name', [DashboardController::class, 'updatePetName'])->name('pet.update-name');
-    Route::post('/update-user-name', [DashboardController::class, 'updateUserName'])->name('user.update-name');
-
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-});
 });
