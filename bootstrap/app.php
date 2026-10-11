@@ -15,5 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
-    
+    })
+    ->withProviders([
+        // Paksa daftarkan core service providers agar tidak missing di serverless
+        Illuminate\View\ViewServiceProvider::class,
+        Illuminate\Routing\RoutingServiceProvider::class,
+    ])
+    ->create();
