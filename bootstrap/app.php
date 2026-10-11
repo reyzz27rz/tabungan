@@ -18,9 +18,25 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// Hanya gunakan /tmp jika aplikasi berjalan di serverless Vercel
+// PENGATURAN VERCEL SERVERLESS STORAGE & CACHE:
 if (getenv('VERCEL')) {
-    $app->useStoragePath('/tmp/storage');
+    $storagePath = '/tmp/storage';
+    
+    // Paksa buat direktori yang dibutuhkan oleh View, Cache, dan Session agar tidak InvalidArgumentException
+    foreach ([
+        '',
+        '/framework',
+        '/framework/views',
+        '/framework/cache',
+        '/framework/sessions',
+    ] as $folder) {
+        $path = $storagePath . $folder;
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
+    }
+
+    $app->useStoragePath($storagePath);
 }
 
 return $app;
