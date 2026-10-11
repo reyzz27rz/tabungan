@@ -4,17 +4,15 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// BERSIHKAN TOTAL MANIFES LAMA DI SEMUA KEMUNGKINAN LOKASI SAAT DI VERCEL
+// SOLUSI ALTERNATIF: Hapus baris PailServiceProvider langsung dari file manifes cache saat booting di Vercel
 if (getenv('VERCEL')) {
-    $possibleManifests = [
-        __DIR__ . '/../bootstrap/cache/packages.php',
-        '/tmp/storage/framework/packages.php',
-        __DIR__ . '/../storage/framework/packages.php',
-    ];
-    
-    foreach ($possibleManifests as $manifest) {
-        if (file_exists($manifest)) {
-            @unlink($manifest);
+    $manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
+    if (file_exists($manifestPath)) {
+        $manifest = include $manifestPath;
+        if (isset($manifest['laravel/pail'])) {
+            unset($manifest['laravel/pail']);
+            // Tulis ulang file manifes tanpa Pail
+            @file_put_contents($manifestPath, '<?php return ' . var_export($manifest, true) . ';');
         }
     }
 }
@@ -33,23 +31,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// PENGATURAN VERCEL STORAGE & TEMPORARY PATH:
+// Alihkan storage ke /tmp agar writable di Vercel
 if (getenv('VERCEL')) {
     $storagePath = '/tmp/storage';
-    
-    foreach ([
-        '',
-        '/framework',
-        '/framework/views',
-        '/framework/cache',
-        '/framework/sessions',
-    ] as $folder) {
+    foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
         $path = $storagePath . $folder;
         if (!is_dir($path)) {
             @mkdir($path, 0755, true);
         }
     }
-
     $app->useStoragePath($storagePath);
 }
 
