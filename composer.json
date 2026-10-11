@@ -68,10 +68,11 @@
     },
     "extra": {
         "laravel": {
-        "dont-discover": [
-            "laravel/pail"
-        ]
-    }
+            "dont-discover": [
+                "laravel/pail",
+                "nunomaduro/collision"
+            ]
+        }
     },
     "config": {
         "optimize-autoloader": true,
