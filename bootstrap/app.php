@@ -4,6 +4,18 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Hapus total manifes cache yang mencakup namespace Pao/Pail yang error
+$manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
+if (file_exists($manifestPath)) {
+    $manifest = include $manifestPath;
+    foreach ($manifest as $key => $value) {
+        if (str_contains($key, 'Pail') || str_contains($key, 'Pao') || (is_array($value) && isset($value['providers']) && collect($value['providers'])->contains(fn($p) => str_contains($p, 'Pao')))) {
+            unset($manifest[$key]);
+        }
+    }
+    @file_put_contents($manifestPath, '<?php return ' . var_export($manifest, true) . ';');
+}
+
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -18,13 +30,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// ENGINEERING BYPASS: Jika class provider eksternal tidak ada di server, cegah agar tidak di-load
-if (!class_exists(\Laravel\Pail\PailServiceProvider::class)) {
-    // Hapus atau cegah pendaftaran provider yang hilang dari container
-    app()->offsetUnset('Laravel\Pail\PailServiceProvider');
-}
-
-// Konfigurasi Storage & Cache agar writable di Vercel Serverless
+// Konfigurasi Storage Vercel
 if (getenv('VERCEL')) {
     $storagePath = '/tmp/storage';
     foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
