@@ -4,11 +4,18 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// Hapus file manifest lama yang error jika ada di environment Vercel
+// BERSIHKAN TOTAL MANIFES LAMA DI SEMUA KEMUNGKINAN LOKASI SAAT DI VERCEL
 if (getenv('VERCEL')) {
-    $manifestPath = '/tmp/storage/framework/packages.php';
-    if (file_exists($manifestPath)) {
-        @unlink($manifestPath);
+    $possibleManifests = [
+        __DIR__ . '/../bootstrap/cache/packages.php',
+        '/tmp/storage/framework/packages.php',
+        __DIR__ . '/../storage/framework/packages.php',
+    ];
+    
+    foreach ($possibleManifests as $manifest) {
+        if (file_exists($manifest)) {
+            @unlink($manifest);
+        }
     }
 }
 
