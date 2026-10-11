@@ -18,15 +18,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// PENGAMANAN MUTLAK VERCEL: Paksa registrasi instance View dan Routing agar tidak pernah missing
-if (!$app->bound('view')) {
-    $app->register(\Illuminate\View\ViewServiceProvider::class);
+// Hanya gunakan /tmp jika aplikasi berjalan di serverless Vercel
+if (getenv('VERCEL')) {
+    $app->useStoragePath('/tmp/storage');
 }
-if (!$app->bound('router')) {
-    $app->register(\Illuminate\Routing\RoutingServiceProvider::class);
-}
-
-// Alihkan storage ke /tmp agar writable di Vercel
-$app->useStoragePath('/tmp/storage');
 
 return $app;
