@@ -4,13 +4,13 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
-    $_ENV['APP_SERVICES_CACHE'] = '/tmp/services.php';
-    $_ENV['APP_PACKAGES_CACHE'] = '/tmp/packages.php';
-    $_ENV['APP_CONFIG_CACHE'] = '/tmp/config.php';
-    $_ENV['APP_ROUTES_CACHE'] = '/tmp/routes.php';
+// 1. Hapus paksa file cache manifest agar package dev yang hilang tidak dibaca
+$manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
+if (file_exists($manifestPath)) {
+    @unlink($manifestPath);
 }
 
+// 2. Konfigurasi aplikasi Laravel 13
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -24,9 +24,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
         //
     });
 
-// Alihkan path storage ke /tmp khusus untuk Vercel (Serverless)
-if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
-    $app->useStoragePath('/tmp/storage');
+// 3. Tangani writable storage path khusus di Vercel Serverless
+if (getenv('VERCEL')) {
+    $storagePath = '/tmp/storage';
+    foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
+        $path = $storagePath . $folder;
+        if (!is_dir($path)) {
+            @mkdir($path, 0755, true);
+        }
+    }
+    
+    // Binding path storage agar mengarah ke /tmp yang memiliki izin tulis
+    $app->useStoragePath($storagePath);
 }
 
-return $app;
+return $app->create();
