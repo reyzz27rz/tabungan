@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// 1. Buat direktori writable di /tmp jika dijalankan di Vercel
+// 1. Jika di Vercel, arahkan dan buat folder writable di /tmp
 if (getenv('VERCEL')) {
     $storagePath = '/tmp/storage';
     foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
@@ -18,9 +18,13 @@ if (getenv('VERCEL')) {
     if (!is_dir($bootstrapCachePath)) {
         @mkdir($bootstrapCachePath, 0755, true);
     }
+
+    // Set environment path cache secara runtime agar Laravel tidak menulis ke /var/task
+    putenv('APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php');
+    putenv('APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php');
 }
 
-// 2. Inisialisasi instance aplikasi Laravel
+// 2. Inisialisasi aplikasi Laravel 13
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -35,13 +39,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->create();
 
-// 3. Override path storage dan path cached services/packages ke /tmp
+// 3. Set storage path ke /tmp yang diizinkan
 if (getenv('VERCEL')) {
     $app->useStoragePath('/tmp/storage');
-    
-    // Alihkan target penyimpanan cache container bootstrap ke /tmp
-    $app->useCachedServicesPath('/tmp/bootstrap/cache/services.php');
-    $app->useCachedPackagesPath('/tmp/bootstrap/cache/packages.php');
 }
 
 return $app;
