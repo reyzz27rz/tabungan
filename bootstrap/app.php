@@ -4,12 +4,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// Hapus file manifes cache agar provider development yang hilang tidak dimuat di Vercel
-$manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
-if (file_exists($manifestPath)) {
-    @unlink($manifestPath);
-}
-
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -21,19 +15,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->create();
+    });
 
-// Konfigurasi Storage Vercel
-if (getenv('VERCEL')) {
-    $storagePath = '/tmp/storage';
-    foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
-        $path = $storagePath . $folder;
-        if (!is_dir($path)) {
-            @mkdir($path, 0755, true);
-        }
-    }
-    $app->useStoragePath($storagePath);
+// Pindahkan storage/cache ke /tmp khusus untuk Vercel (Serverless)
+if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
+    $app->useStoragePath('/tmp/storage');
 }
 
 return $app;
