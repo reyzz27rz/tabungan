@@ -4,13 +4,17 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// 1. Hapus cache packages agar package dev yang hilang tidak dibaca
-$manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
-if (file_exists($manifestPath)) {
-    @unlink($manifestPath);
+// Jika berjalan di Vercel, arahkan direktori cache framework ke /tmp yang writable
+if (getenv('VERCEL')) {
+    $storagePath = '/tmp/storage';
+    foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
+        $path = $storagePath . $folder;
+        if (!is_dir($path)) {
+            @mkdir($path, 0755, true);
+        }
+    }
 }
 
-// 2. Konfigurasi aplikasi Laravel 13
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -22,21 +26,14 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->create();
+    });
 
-// 3. Redirect writable path ke /tmp khusus untuk Vercel Serverless tanpa error method
+// Override path storage dan path cache framework agar aman di Vercel Serverless
 if (getenv('VERCEL')) {
-    $storagePath = '/tmp/storage';
-    foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
-        $path = $storagePath . $folder;
-        if (!is_dir($path)) {
-            @mkdir($path, 0755, true);
-        }
-    }
+    $app->useStoragePath('/tmp/storage');
     
-    // Binding path container secara langsung agar kompatibel dengan Laravel versi baru
-    $app->useStoragePath($storagePath);
+    // Alihkan path cache agar Laravel tidak menulis ke /var/task/user/bootstrap/cache
+    $app->useBootstrapPath('/tmp');
 }
 
-return $app;
+return $app->create();
