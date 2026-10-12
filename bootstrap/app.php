@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-// 1. Hapus paksa file cache manifest agar package dev yang hilang tidak dibaca
+// 1. Hapus cache packages agar package dev yang hilang tidak dibaca
 $manifestPath = __DIR__ . '/../bootstrap/cache/packages.php';
 if (file_exists($manifestPath)) {
     @unlink($manifestPath);
@@ -22,9 +22,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    });
+    })
+    ->create();
 
-// 3. Tangani writable storage path khusus di Vercel Serverless
+// 3. Redirect writable path ke /tmp khusus untuk Vercel Serverless tanpa error method
 if (getenv('VERCEL')) {
     $storagePath = '/tmp/storage';
     foreach (['', '/framework', '/framework/views', '/framework/cache', '/framework/sessions'] as $folder) {
@@ -34,8 +35,8 @@ if (getenv('VERCEL')) {
         }
     }
     
-    // Binding path storage agar mengarah ke /tmp yang memiliki izin tulis
+    // Binding path container secara langsung agar kompatibel dengan Laravel versi baru
     $app->useStoragePath($storagePath);
 }
 
-return $app->create();
+return $app;
