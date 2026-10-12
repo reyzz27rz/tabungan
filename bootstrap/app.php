@@ -22,9 +22,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })
-    ->create();
+    });
 
+// Alihkan path storage ke /tmp khusus untuk Vercel (Serverless)
 if (isset($_ENV['VERCEL']) || getenv('VERCEL')) {
     $app->useStoragePath('/tmp/storage');
 }
