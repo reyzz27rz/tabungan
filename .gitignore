@@ -21,10 +21,11 @@
 /storage/*.key
 /storage/pail
 /vendor
-/bootstrap/cache/*.php/bootstrap/cache/*.php
+/bootstrap/cache/*.php
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
+!/bootstrap/cache/.gitignore
 _ide_helper.php
 Homestead.json
 Homestead.yaml
